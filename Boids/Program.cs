@@ -66,8 +66,8 @@ namespace Boids
         static void Main(string[] args)
         {
             Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow | ConfigFlags.ResizableWindow);
-            Raylib.SetTargetFPS(60);
-            int f = 100;
+            Raylib.SetTargetFPS(70);
+            int f = 115;
             int w = 9 * f;
             int h = 9 * f;
             Raylib.InitWindow(w, h, "Boids");
@@ -75,19 +75,20 @@ namespace Boids
             //float Angle = 0.0f;
             //float RotationSpeed = 5.0f;
             float radius = 2.0f;
-            float turnfactor = 0.14f;
+            float turnfactor = 0.20f;
             float visualRange = 40f;
             float protectedRange = 8f;
-            float centeringfactor = 0.0006f;
+            float centeringfactor = 0.00005f;
             float avoidfactor = 0.05f;
             float matchingfactor = 0.05f;
-            float maxspeed = 6.0f;
+            float maxspeed = 5.5f;
             float minspeed = 3.0f;
-            int N = 700;
+            int N = 1000;
             List<Boid> birds = [];
             for (int i = 0; i < N; i++)
             {
-                birds.Add(new(random.Next(w), random.Next(h), minspeed, minspeed));
+                //birds.Add(new(random.Next(w), random.Next(h), minspeed, minspeed));
+                birds.Add(new(w / 2 + i, h / 2 + random.Next(123), 4, 4));
             }
             while (!Raylib.WindowShouldClose())
             {
@@ -154,8 +155,8 @@ namespace Boids
 
                     // see screen edges (boundaries)
                     /*outside top margin*/
-                    int marginx = 3;
-                    int marginy = 3;
+                    int marginx = 7;
+                    int marginy = 7;
                     if (birds[i].y < h / marginy)
                     {
                         birds[i].vy = birds[i].vy + turnfactor;
@@ -187,13 +188,14 @@ namespace Boids
                         birds[i].vy = (birds[i].vy / speed) * maxspeed;
                     }
 
-                    birds[i].x += (int)(birds[i].vx);
-                    birds[i].y += (int)(birds[i].vy);
+                    birds[i].x += (int)(birds[i].vx * 2);
+                    birds[i].y += (int)(birds[i].vy * 2);
                     if (birds[i].x < 0) birds[i].x = 0;
                     if (birds[i].x > w) birds[i].x = w;
                     if (birds[i].y < 0) birds[i].y = 0;
                     if (birds[i].y > h) birds[i].y = h;
                     Raylib.DrawCircle(birds[i].x, birds[i].y, radius, c);
+                    Raylib.DrawRectangleLinesEx(new(w / marginx, h / marginy, new(w - 2 * w / marginx, h - 2 * h / marginy)), radius, Color.Red);
                 }
 
                 
