@@ -21,14 +21,13 @@ namespace Boids
             }
         }
         static List<Boid> birds = [];
-        static float Speed = 0.25f;
-        static float acc = 0.1f;
-        static float SizeFactor = 0.5f;
-        static float WingHeight = 50;
-        static float WingWidth = 50 * SizeFactor;
+        static float SizeFactor = 0.4f;
+        static float size = 7.0f;
+        static float WingHeight = size;
+        static float WingWidth = size * SizeFactor;
         static float CenterLength = 0.7f * WingHeight;
         static float tail = WingHeight - CenterLength;
-        static float Thickness = 2.0f;
+        static float Thickness = 1.0f;
         static Color c = Color.White;
 
         static float radius = 2.0f;
@@ -147,52 +146,47 @@ namespace Boids
                 }
             }
         }
-        static (Vector2 , float , float ) DrawBird(Vector2 center, float Angle, float RotationSpeed)
+        static void DrawBird(Boid bird)
         {
-            Vector2 top = new(center.X + CenterLength * MathF.Sin(Angle), center.Y - CenterLength * MathF.Cos(Angle));
-            Vector2 leftend = new(center.X - (WingWidth * MathF.Cos(Angle) + tail * MathF.Sin(Angle)),
-                                  center.Y + (tail * MathF.Cos(Angle) - WingWidth * MathF.Sin(Angle)));
-            Vector2 rightend = new(center.X + (WingWidth * MathF.Cos(Angle) - tail * MathF.Sin(Angle)),
-                                  center.Y + (tail * MathF.Cos(Angle) + WingWidth * MathF.Sin(Angle)));
-            //Raylib.DrawLineEx(center, top, Thickness, c);
-            Raylib.DrawLineEx(center, leftend, Thickness, c);
-            Raylib.DrawLineEx(center, rightend, Thickness, c);
+            float Angle;
+            if (bird.vx == 0)
+            {
+                Angle = (bird.vy > 0) ? MathF.PI / 2.0f : 3 * MathF.PI / 2.0f;
+            }
+            else if (bird.vx < 0 && bird.vy < 0)
+            {
+                Angle = MathF.Atan(bird.vy / bird.vx) + MathF.PI;
+            }
+            else if (bird.vx < 0)
+            {
+                Angle = MathF.PI - MathF.Atan(bird.vy / -bird.vx);
+            }
+            else if (bird.vy < 0)
+            {
+                Angle = 2 * MathF.PI + MathF.Atan(-bird.vy / bird.vx);
+            }
+            else
+            {
+                Angle = MathF.Atan(bird.vy / bird.vx);
+            }
+            Angle += MathF.PI / 2.0f;
+            Vector2 top = new(bird.x + CenterLength * MathF.Sin(Angle), bird.y - CenterLength * MathF.Cos(Angle));
+            Vector2 leftend = new(bird.x - (WingWidth * MathF.Cos(Angle) + tail * MathF.Sin(Angle)),
+                                  bird.y + (tail * MathF.Cos(Angle) - WingWidth * MathF.Sin(Angle)));
+            Vector2 rightend = new(bird.x + (WingWidth * MathF.Cos(Angle) - tail * MathF.Sin(Angle)),
+                                  bird.y + (tail * MathF.Cos(Angle) + WingWidth * MathF.Sin(Angle)));
+            Raylib.DrawLineEx(new(bird.x, bird.y), leftend, Thickness, c);
+            Raylib.DrawLineEx(new(bird.x, bird.y), rightend, Thickness, c);
             Raylib.DrawLineEx(top, leftend, Thickness, c);
             Raylib.DrawLineEx(top, rightend, Thickness, c);
-
-            if (Raylib.IsKeyDown(KeyboardKey.Right))
-            {
-                Angle += RotationSpeed * Raylib.GetFrameTime();
-            }
-            if (Raylib.IsKeyDown(KeyboardKey.Left))
-            {
-                Angle -= RotationSpeed * Raylib.GetFrameTime();
-            }
-            if (Raylib.IsKeyDown(KeyboardKey.Up))
-            {
-                Speed += 2 * acc * Raylib.GetFrameTime();
-            }
-            else if (Raylib.IsKeyDown(KeyboardKey.Down))
-            {
-                Speed -= acc * Raylib.GetFrameTime();
-            }
-            if (Speed < 0) Speed = 0;
-            center.X += Speed * MathF.Sin(Angle);
-            center.Y -= Speed * MathF.Cos(Angle);
-            return (center, Angle, RotationSpeed);
         }
         static void Main(string[] args)
         {
             Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow | ConfigFlags.ResizableWindow);
-            Raylib.SetTargetFPS(0);
+            Raylib.SetTargetFPS(60);
             Raylib.InitWindow(w, h, "Boids");
-            //Vector2 center = new(w / 2, h / 2);
-            //float Angle = 0.0f;
-            //float RotationSpeed = 5.0f;
-            
             for (int i = 0; i < N; i++)
             {
-                //birds.Add(new(random.Next(w), random.Next(h), minspeed, minspeed));
                 birds.Add(new(i, h / 2 + random.Next(123), 4, 4));
             }
             int NumberOfThreads = 4;
@@ -205,7 +199,6 @@ namespace Boids
                 Raylib.ClearBackground(Color.Black);
                 Raylib.DrawFPS(0, 0);
 
-                //Update(0, N);
                 int part = 0;
                 Thread thread1 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
                 Thread thread2 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
@@ -216,12 +209,9 @@ namespace Boids
                 thread3.Start();
                 thread4.Start();
                 for (int i = 0; i < N; i++)
-                    Raylib.DrawCircle(birds[i].x, birds[i].y, radius, c);
-
-
-                //if (Raylib.IsKeyPressed(KeyboardKey.R))
-                //    center = new(w / 2, h / 2);
-                //(center, Angle, RotationSpeed) = DrawBird(center, Angle, RotationSpeed);
+                {
+                    DrawBird(birds[i]);
+                }
                 Raylib.DrawRectangleLinesEx(new(w / marginx, h / marginy, new(w - 2 * w / marginx, h - 2 * h / marginy)), radius, Color.Red);
                 Raylib.EndDrawing();
             }
