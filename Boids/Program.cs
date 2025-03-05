@@ -66,23 +66,24 @@ namespace Boids
         static void Main(string[] args)
         {
             Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow | ConfigFlags.ResizableWindow);
+            Raylib.SetTargetFPS(60);
             int f = 100;
-            int w = 16 * f;
+            int w = 9 * f;
             int h = 9 * f;
             Raylib.InitWindow(w, h, "Boids");
             //Vector2 center = new(w / 2, h / 2);
             //float Angle = 0.0f;
             //float RotationSpeed = 5.0f;
             float radius = 2.0f;
-            float turnfactor = 0.1f;
+            float turnfactor = 0.14f;
             float visualRange = 40f;
             float protectedRange = 8f;
-            float centeringfactor = 0.0005f;
+            float centeringfactor = 0.0006f;
             float avoidfactor = 0.05f;
             float matchingfactor = 0.05f;
             float maxspeed = 6.0f;
             float minspeed = 3.0f;
-            int N = 1200;
+            int N = 700;
             List<Boid> birds = [];
             for (int i = 0; i < N; i++)
             {
@@ -153,8 +154,8 @@ namespace Boids
 
                     // see screen edges (boundaries)
                     /*outside top margin*/
-                    int marginx = 4;
-                    int marginy = 4;
+                    int marginx = 3;
+                    int marginy = 3;
                     if (birds[i].y < h / marginy)
                     {
                         birds[i].vy = birds[i].vy + turnfactor;
