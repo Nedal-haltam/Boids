@@ -30,18 +30,27 @@ namespace Boids
         static float Thickness = 1.0f;
         static Color c = Color.White;
 
-        static float radius = 2.0f;
+
+        static float Defaultmaxspeed = 5.5f;
+        static float Defaultminspeed = 3.0f;
+        static float Defaultturnfactor = 0.20f;
+        static float Defaultcenteringfactor = 0.00005f;
+        static float Defaultavoidfactor = 0.05f;
+        static float Defaultmatchingfactor = 0.05f;
+
+        static float maxspeed = 5.5f;
+        static float minspeed = 3.0f;
         static float turnfactor = 0.20f;
-        static float visualRange = 40f;
-        static float protectedRange = 8f;
         static float centeringfactor = 0.00005f;
         static float avoidfactor = 0.05f;
         static float matchingfactor = 0.05f;
-        static float maxspeed = 5.5f;
-        static float minspeed = 3.0f;
+
+        static float radius = 2.0f;
+        static float visualRange = 40f;
+        static float protectedRange = 8f;
         static int marginx = 7;
         static int marginy = 7;
-        static int N = 2048;
+        static int N = 1024;
 
         static int f = 100;
         static int w = 9 * f;
@@ -180,6 +189,39 @@ namespace Boids
             Raylib.DrawLineEx(top, leftend, Thickness, c);
             Raylib.DrawLineEx(top, rightend, Thickness, c);
         }
+
+        public static void RenderBoids()
+        {
+            int part = 0;
+            int NumberOfThreads = 4;
+            Thread thread1 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
+            Thread thread2 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
+            Thread thread3 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
+            Thread thread4 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
+            thread1.Start();
+            thread2.Start();
+            thread3.Start();
+            thread4.Start();
+            for (int i = 0; i < N; i++)
+            {
+                DrawBird(birds[i]);
+            }
+            Raylib.DrawRectangleLinesEx(new(w / marginx, h / marginy, new(w - 2 * w / marginx, h - 2 * h / marginy)), radius, Color.Red);
+        }
+        public static void ModifyParameterStep(ref float parameter, float step)
+        {
+            if (Raylib.IsKeyPressed(KeyboardKey.Right))
+                parameter += step;
+            if (Raylib.IsKeyPressed(KeyboardKey.Left))
+                parameter -= step;
+        }
+        public static void ModifyParameterSweep(ref float parameter, float step)
+        {
+            if (Raylib.IsKeyDown(KeyboardKey.Right))
+                parameter += step;
+            if (Raylib.IsKeyDown(KeyboardKey.Left))
+                parameter -= step;
+        }
         static void Main(string[] args)
         {
             Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow | ConfigFlags.ResizableWindow);
@@ -189,30 +231,67 @@ namespace Boids
             {
                 birds.Add(new(i, h / 2 + random.Next(123), 4, 4));
             }
-            int NumberOfThreads = 4;
+            
             while (!Raylib.WindowShouldClose())
             {
-                w = Raylib.GetScreenWidth();
-                h = Raylib.GetScreenHeight();
                 float dt = Raylib.GetFrameTime();
                 Raylib.BeginDrawing();
                 Raylib.ClearBackground(Color.Black);
                 Raylib.DrawFPS(0, 0);
 
-                int part = 0;
-                Thread thread1 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-                Thread thread2 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-                Thread thread3 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-                Thread thread4 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-                thread1.Start();
-                thread2.Start();
-                thread3.Start();
-                thread4.Start();
-                for (int i = 0; i < N; i++)
+                if (Raylib.IsKeyDown(KeyboardKey.T))
                 {
-                    DrawBird(birds[i]);
+                    if (Raylib.IsKeyDown(KeyboardKey.Up))
+                        ModifyParameterSweep(ref turnfactor, 0.01f);
+                    else
+                        ModifyParameterStep(ref turnfactor, 0.01f);
                 }
-                Raylib.DrawRectangleLinesEx(new(w / marginx, h / marginy, new(w - 2 * w / marginx, h - 2 * h / marginy)), radius, Color.Red);
+                else if (Raylib.IsKeyDown(KeyboardKey.C))
+                {
+                    if (Raylib.IsKeyDown(KeyboardKey.Up))
+                        ModifyParameterSweep(ref centeringfactor, 0.00001f);
+                    else
+                        ModifyParameterStep(ref centeringfactor, 0.00001f);
+                }
+                else if (Raylib.IsKeyDown(KeyboardKey.A))
+                {
+                    if (Raylib.IsKeyDown(KeyboardKey.Up))
+                        ModifyParameterSweep(ref maxspeed, 0.1f);
+                    else
+                        ModifyParameterStep(ref maxspeed, 0.1f);
+                }
+                else if (Raylib.IsKeyDown(KeyboardKey.I))
+                {
+                    if (Raylib.IsKeyDown(KeyboardKey.Up))
+                        ModifyParameterSweep(ref minspeed, 0.1f);
+                    else
+                        ModifyParameterStep(ref minspeed, 0.1f);
+                }
+                else if (Raylib.IsKeyDown(KeyboardKey.V))
+                {
+                    if (Raylib.IsKeyDown(KeyboardKey.Up))
+                        ModifyParameterSweep(ref avoidfactor, 0.01f);
+                    else
+                        ModifyParameterStep(ref avoidfactor, 0.01f);
+                }
+                else if (Raylib.IsKeyDown(KeyboardKey.M))
+                {
+                    if (Raylib.IsKeyDown(KeyboardKey.Up))
+                        ModifyParameterSweep(ref matchingfactor, 0.01f);
+                    else
+                        ModifyParameterStep(ref matchingfactor, 0.01f);
+                }
+                else if (Raylib.IsKeyPressed(KeyboardKey.R))
+                {
+                    maxspeed = Defaultmaxspeed;
+                    minspeed = Defaultminspeed;
+                    turnfactor = Defaultturnfactor;
+                    centeringfactor = Defaultcenteringfactor;
+                    avoidfactor = Defaultavoidfactor;
+                    matchingfactor = Defaultmatchingfactor;
+                }
+                RenderBoids();
+
                 Raylib.EndDrawing();
             }
             Raylib.CloseWindow();
