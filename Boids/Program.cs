@@ -222,11 +222,39 @@ namespace Boids
             if (Raylib.IsKeyDown(KeyboardKey.Left))
                 parameter -= step;
         }
+        public static void RenderParamterText(int TextHeight)
+        {
+            int spacing = 0;
+            int margin = 5;
+            string TextMaxSpeed = $"Max Speed: {(int)maxspeed}.{((int)(maxspeed * 10)) % 10}{((int)(maxspeed * 100)) % 10}, ";
+            Raylib.DrawText(TextMaxSpeed, 10, h + margin, TextHeight - margin, Color.White);
+
+            spacing += Raylib.MeasureText(TextMaxSpeed, TextHeight - margin) + 10;
+            string TextMinSpeed = $"Min Speed: {(int)minspeed}.{((int)(minspeed * 10)) % 10}{((int)(minspeed * 100)) % 10}, ";
+            Raylib.DrawText(TextMinSpeed, spacing, h + margin, TextHeight - margin, Color.White);
+
+            spacing += Raylib.MeasureText(TextMinSpeed, TextHeight - margin) + 5;
+            string TextTurnFactor = $"Turn Factor: {(int)turnfactor}.{((int)(turnfactor * 10)) % 10}{((int)(turnfactor * 100)) % 10}, ";
+            Raylib.DrawText(TextTurnFactor, spacing, h + margin, TextHeight - margin, Color.White);
+
+            spacing += Raylib.MeasureText(TextTurnFactor, TextHeight - margin) + 5;
+            string TextCenteringFactor = $"Centering Factor: {(int)centeringfactor}.{((int)(centeringfactor * 10)) % 10}{((int)(centeringfactor * 100)) % 10}{((int)(centeringfactor * 1000)) % 10}{((int)(centeringfactor * 10000)) % 10}{((int)(centeringfactor * 100000)) % 10}, ";
+            Raylib.DrawText(TextCenteringFactor, spacing, h + margin, TextHeight - margin, Color.White);
+
+            spacing += Raylib.MeasureText(TextCenteringFactor, TextHeight - margin) + 5;
+            string TextAvoidFactor = $"Avoid Factor: {(int)avoidfactor}.{((int)(avoidfactor * 10)) % 10}{((int)(avoidfactor * 100)) % 10}, ";
+            Raylib.DrawText(TextAvoidFactor, spacing, h + margin, TextHeight - margin, Color.White);
+
+            spacing += Raylib.MeasureText(TextAvoidFactor, TextHeight - margin) + 5;
+            string TextMatchingFactor = $"Matching Factor: {(int)matchingfactor}.{((int)(matchingfactor * 10)) % 10}{((int)(matchingfactor * 100)) % 10}";
+            Raylib.DrawText(TextMatchingFactor, spacing, h + margin, TextHeight - margin, Color.White);
+        }
         static void Main(string[] args)
         {
-            Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow | ConfigFlags.ResizableWindow);
+            int TextHeight = 18;
+            Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow);
             Raylib.SetTargetFPS(60);
-            Raylib.InitWindow(w, h, "Boids");
+            Raylib.InitWindow(w, h + TextHeight, "Boids");
             for (int i = 0; i < N; i++)
             {
                 birds.Add(new(i, h / 2 + random.Next(123), 4, 4));
@@ -291,6 +319,7 @@ namespace Boids
                     matchingfactor = Defaultmatchingfactor;
                 }
                 RenderBoids();
+                RenderParamterText(TextHeight);
 
                 Raylib.EndDrawing();
             }
