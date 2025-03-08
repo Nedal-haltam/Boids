@@ -189,7 +189,6 @@ namespace Boids
             Raylib.DrawLineEx(top, leftend, Thickness, c);
             Raylib.DrawLineEx(top, rightend, Thickness, c);
         }
-
         public static void RenderBoids()
         {
             int part = 0;
@@ -222,6 +221,60 @@ namespace Boids
             if (Raylib.IsKeyDown(KeyboardKey.Left))
                 parameter -= step;
         }
+        public static void ControlParamters()
+        {
+            if (Raylib.IsKeyDown(KeyboardKey.T))
+            {
+                if (Raylib.IsKeyDown(KeyboardKey.Up))
+                    ModifyParameterSweep(ref turnfactor, 0.01f);
+                else
+                    ModifyParameterStep(ref turnfactor, 0.01f);
+            }
+            else if (Raylib.IsKeyDown(KeyboardKey.C))
+            {
+                if (Raylib.IsKeyDown(KeyboardKey.Up))
+                    ModifyParameterSweep(ref centeringfactor, 0.00001f);
+                else
+                    ModifyParameterStep(ref centeringfactor, 0.00001f);
+            }
+            else if (Raylib.IsKeyDown(KeyboardKey.A))
+            {
+                if (Raylib.IsKeyDown(KeyboardKey.Up))
+                    ModifyParameterSweep(ref maxspeed, 0.1f);
+                else
+                    ModifyParameterStep(ref maxspeed, 0.1f);
+            }
+            else if (Raylib.IsKeyDown(KeyboardKey.I))
+            {
+                if (Raylib.IsKeyDown(KeyboardKey.Up))
+                    ModifyParameterSweep(ref minspeed, 0.1f);
+                else
+                    ModifyParameterStep(ref minspeed, 0.1f);
+            }
+            else if (Raylib.IsKeyDown(KeyboardKey.V))
+            {
+                if (Raylib.IsKeyDown(KeyboardKey.Up))
+                    ModifyParameterSweep(ref avoidfactor, 0.01f);
+                else
+                    ModifyParameterStep(ref avoidfactor, 0.01f);
+            }
+            else if (Raylib.IsKeyDown(KeyboardKey.M))
+            {
+                if (Raylib.IsKeyDown(KeyboardKey.Up))
+                    ModifyParameterSweep(ref matchingfactor, 0.01f);
+                else
+                    ModifyParameterStep(ref matchingfactor, 0.01f);
+            }
+            else if (Raylib.IsKeyPressed(KeyboardKey.R))
+            {
+                maxspeed = Defaultmaxspeed;
+                minspeed = Defaultminspeed;
+                turnfactor = Defaultturnfactor;
+                centeringfactor = Defaultcenteringfactor;
+                avoidfactor = Defaultavoidfactor;
+                matchingfactor = Defaultmatchingfactor;
+            }
+        }
         public static void RenderParamterText(int TextHeight)
         {
             int spacing = 0;
@@ -249,6 +302,7 @@ namespace Boids
             string TextMatchingFactor = $"Matching Factor: {(int)matchingfactor}.{((int)(matchingfactor * 10)) % 10}{((int)(matchingfactor * 100)) % 10}";
             Raylib.DrawText(TextMatchingFactor, spacing, h + margin, TextHeight - margin, Color.White);
         }
+
         static void Main(string[] args)
         {
             int TextHeight = 18;
@@ -267,57 +321,7 @@ namespace Boids
                 Raylib.ClearBackground(Color.Black);
                 Raylib.DrawFPS(0, 0);
 
-                if (Raylib.IsKeyDown(KeyboardKey.T))
-                {
-                    if (Raylib.IsKeyDown(KeyboardKey.Up))
-                        ModifyParameterSweep(ref turnfactor, 0.01f);
-                    else
-                        ModifyParameterStep(ref turnfactor, 0.01f);
-                }
-                else if (Raylib.IsKeyDown(KeyboardKey.C))
-                {
-                    if (Raylib.IsKeyDown(KeyboardKey.Up))
-                        ModifyParameterSweep(ref centeringfactor, 0.00001f);
-                    else
-                        ModifyParameterStep(ref centeringfactor, 0.00001f);
-                }
-                else if (Raylib.IsKeyDown(KeyboardKey.A))
-                {
-                    if (Raylib.IsKeyDown(KeyboardKey.Up))
-                        ModifyParameterSweep(ref maxspeed, 0.1f);
-                    else
-                        ModifyParameterStep(ref maxspeed, 0.1f);
-                }
-                else if (Raylib.IsKeyDown(KeyboardKey.I))
-                {
-                    if (Raylib.IsKeyDown(KeyboardKey.Up))
-                        ModifyParameterSweep(ref minspeed, 0.1f);
-                    else
-                        ModifyParameterStep(ref minspeed, 0.1f);
-                }
-                else if (Raylib.IsKeyDown(KeyboardKey.V))
-                {
-                    if (Raylib.IsKeyDown(KeyboardKey.Up))
-                        ModifyParameterSweep(ref avoidfactor, 0.01f);
-                    else
-                        ModifyParameterStep(ref avoidfactor, 0.01f);
-                }
-                else if (Raylib.IsKeyDown(KeyboardKey.M))
-                {
-                    if (Raylib.IsKeyDown(KeyboardKey.Up))
-                        ModifyParameterSweep(ref matchingfactor, 0.01f);
-                    else
-                        ModifyParameterStep(ref matchingfactor, 0.01f);
-                }
-                else if (Raylib.IsKeyPressed(KeyboardKey.R))
-                {
-                    maxspeed = Defaultmaxspeed;
-                    minspeed = Defaultminspeed;
-                    turnfactor = Defaultturnfactor;
-                    centeringfactor = Defaultcenteringfactor;
-                    avoidfactor = Defaultavoidfactor;
-                    matchingfactor = Defaultmatchingfactor;
-                }
+                ControlParamters();
                 RenderBoids();
                 RenderParamterText(TextHeight);
 
