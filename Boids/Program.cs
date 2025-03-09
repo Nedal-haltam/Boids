@@ -8,6 +8,10 @@ namespace Boids
     internal class Program
     {
         static Random random = new();
+        public enum State
+        {
+            Rendering, WelcomeScreen 
+        }
         public class Boid
         {
             public int x, y;
@@ -302,10 +306,48 @@ namespace Boids
             string TextMatchingFactor = $"Matching Factor: {(int)matchingfactor}.{((int)(matchingfactor * 10)) % 10}{((int)(matchingfactor * 100)) % 10}";
             Raylib.DrawText(TextMatchingFactor, spacing, h + margin, TextHeight - margin, Color.White);
         }
+        public static void DisplayWelcomeScreen()
+        {
+            int FontSize = 30;
+            string TextWelcomeMessage = "Welcom to Boids Simulation";
+            int TextWelcomeMessageWidth = Raylib.MeasureText(TextWelcomeMessage, FontSize);
+            Raylib.DrawText(TextWelcomeMessage, w / 2 - TextWelcomeMessageWidth / 2, h / 5, FontSize, Color.White);
 
+            string Textmsg1 = "You can control the following parameters:";
+            int Textmsg1Width = Raylib.MeasureText(Textmsg1, FontSize);
+            Raylib.DrawText(Textmsg1, w / 2 - Textmsg1Width / 2, h / 3, FontSize, Color.White);
+            string[] TextParameters =
+            [
+                "A: maxspeed",
+                "I: minspeed",
+                "T: turnfactor",
+                "C: centeringfactor",
+                "V: avoidfactor",
+                "M: matchingfactor",
+            ];
+            for (int i = 0; i < TextParameters.Length; i++)
+            {
+                string TempText = TextParameters[i];
+                Raylib.DrawText(TempText, w / 2 - Textmsg1Width / 2, h / 3 + 100 + i * (int)(1.5f * FontSize), FontSize, Color.White);
+            }
+            string Textinstruction = "Press and Hold the corresponding letter and then\n\nincrease or decrease the value using\n\nthe right and left arrows respectively";
+            int TextinstructionWidth = Raylib.MeasureText(Textinstruction, FontSize);
+            Raylib.DrawText(Textinstruction, 20, h - h / 5, FontSize, Color.White);
+
+            string TextContinue = "Press Enter to continue.";
+            int TextContinueWidth = Raylib.MeasureText(TextContinue, FontSize / 2);
+            Raylib.DrawText(TextContinue, w / 2 - TextContinueWidth / 2, h - 20, FontSize / 2, Color.White);
+        }
+        public static void Render(int TextHeight)
+        {
+            ControlParamters();
+            RenderBoids();
+            RenderParamterText(TextHeight);
+        }
         static void Main(string[] args)
         {
-            int TextHeight = 18;
+            int TextHeight = 21;
+            State CurrentState = State.WelcomeScreen;
             Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow);
             Raylib.SetTargetFPS(60);
             Raylib.InitWindow(w, h + TextHeight, "Boids");
@@ -321,10 +363,17 @@ namespace Boids
                 Raylib.ClearBackground(Color.Black);
                 Raylib.DrawFPS(0, 0);
 
-                ControlParamters();
-                RenderBoids();
-                RenderParamterText(TextHeight);
+                if (Raylib.IsKeyPressed(KeyboardKey.Enter) && CurrentState == State.WelcomeScreen)
+                    CurrentState = State.Rendering;
 
+                if (CurrentState == State.WelcomeScreen)
+                {
+                    DisplayWelcomeScreen();
+                }
+                else if (CurrentState == State.Rendering)
+                {
+                    Render(TextHeight);
+                }
                 Raylib.EndDrawing();
             }
             Raylib.CloseWindow();
