@@ -365,6 +365,8 @@ namespace Boids
 
                 if (Raylib.IsKeyPressed(KeyboardKey.Enter) && CurrentState == State.WelcomeScreen)
                     CurrentState = State.Rendering;
+                if (Raylib.IsKeyPressed(KeyboardKey.H) && CurrentState == State.Rendering)
+                    CurrentState = State.WelcomeScreen;
 
                 if (CurrentState == State.WelcomeScreen)
                 {
