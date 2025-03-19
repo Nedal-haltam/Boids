@@ -54,31 +54,27 @@ namespace Boids
         static float protectedRange = 8f;
         static int marginx = 7;
         static int marginy = 7;
-        static int N = 1024;
+        
 
         static int f = 100;
         static int w = 9 * f;
         static int h = 9 * f;
-        public static void Update(int StartIndex, int Count)
+        public static void UpdatePrallelFor(int StartIndex, int Count)
         {
-            //while (true)
+            Parallel.For(StartIndex, StartIndex + Count, i =>
             {
-                Boid[] CurrentState = new Boid[N];
-                birds.CopyTo(CurrentState, 0);
-                for (int i = StartIndex; i < StartIndex + Count; i++)
+                float close_dx = 0.0f;
+                float close_dy = 0.0f;
+                float xpos_avg = 0.0f;
+                float ypos_avg = 0.0f;
+                float xvel_avg = 0.0f;
+                float yvel_avg = 0.0f;
+                float neighboring_boids = 0.0f;
+                Parallel.For(0, N, j =>
                 {
-                    float close_dx = 0.0f;
-                    float close_dy = 0.0f;
-                    float xpos_avg = 0.0f;
-                    float ypos_avg = 0.0f;
-                    float xvel_avg = 0.0f;
-                    float yvel_avg = 0.0f;
-                    float neighboring_boids = 0.0f;
-                    for (int j = 0; j < N; j++)
+                    if (i != j)
                     {
-                        if (i == j)
-                            continue;
-                        Vector2 difference = new(CurrentState[i].x - CurrentState[j].x, CurrentState[i].y - CurrentState[j].y);
+                        Vector2 difference = new(birds[i].x - birds[j].x, birds[i].y - birds[j].y);
                         if (MathF.Abs(difference.X) < visualRange && MathF.Abs(difference.Y) < visualRange)
                         {
                             float SquaredDistance = MathF.Pow(difference.X, 2) + MathF.Pow(difference.Y, 2);
@@ -89,74 +85,171 @@ namespace Boids
                             }
                             else if (SquaredDistance < MathF.Pow(visualRange, 2))
                             {
-                                xpos_avg += CurrentState[j].x;
-                                ypos_avg += CurrentState[j].y;
-                                xvel_avg += CurrentState[j].vx;
-                                yvel_avg += CurrentState[j].vy;
+                                xpos_avg += birds[j].x;
+                                ypos_avg += birds[j].y;
+                                xvel_avg += birds[j].vx;
+                                yvel_avg += birds[j].vy;
 
                                 neighboring_boids++;
                             }
                         }
                     }
-                    if (neighboring_boids > 0)
-                    {
-                        xpos_avg = xpos_avg / neighboring_boids;
-                        ypos_avg = ypos_avg / neighboring_boids;
-                        xvel_avg = xvel_avg / neighboring_boids;
-                        yvel_avg = yvel_avg / neighboring_boids;
+                });
+                if (neighboring_boids > 0)
+                {
+                    xpos_avg = xpos_avg / neighboring_boids;
+                    ypos_avg = ypos_avg / neighboring_boids;
+                    xvel_avg = xvel_avg / neighboring_boids;
+                    yvel_avg = yvel_avg / neighboring_boids;
 
-                        birds[i].vx = (birds[i].vx +
-                                   (xpos_avg - birds[i].x) * centeringfactor +
-                                   (xvel_avg - birds[i].vx) * matchingfactor);
+                    birds[i].vx = (birds[i].vx +
+                                (xpos_avg - birds[i].x) * centeringfactor +
+                                (xvel_avg - birds[i].vx) * matchingfactor);
 
-                        birds[i].vy = (birds[i].vy +
-                                   (ypos_avg - birds[i].y) * centeringfactor +
-                                   (yvel_avg - birds[i].vy) * matchingfactor);
-                    }
-                    birds[i].vx = birds[i].vx + (close_dx * avoidfactor);
-                    birds[i].vy = birds[i].vy + (close_dy * avoidfactor);
-
-                    // see screen edges (boundaries)
-                    /*outside top margin*/
-                    if (birds[i].y < h / marginy)
-                    {
-                        birds[i].vy = birds[i].vy + turnfactor;
-                    }
-                    /*outside bottom margin*/
-                    if (birds[i].y > h - h / marginy)
-                    {
-                        birds[i].vy = birds[i].vy - turnfactor;
-                    }
-                    /*outside right margin*/
-                    if (birds[i].x > w - w / marginx)
-                    {
-                        birds[i].vx = birds[i].vx - turnfactor;
-                    }
-                    /*outside left margin*/
-                    if (birds[i].x < w / marginx)
-                    {
-                        birds[i].vx = birds[i].vx + turnfactor;
-                    }
-                    float speed = MathF.Sqrt(birds[i].vx * birds[i].vx + birds[i].vy * birds[i].vy);
-                    if (speed < minspeed)
-                    {
-                        birds[i].vx = (birds[i].vx / speed) * minspeed;
-                        birds[i].vy = (birds[i].vy / speed) * minspeed;
-                    }
-                    if (speed > maxspeed)
-                    {
-                        birds[i].vx = (birds[i].vx / speed) * maxspeed;
-                        birds[i].vy = (birds[i].vy / speed) * maxspeed;
-                    }
-
-                    birds[i].x += (int)(birds[i].vx * 2);
-                    birds[i].y += (int)(birds[i].vy * 2);
-                    if (birds[i].x < 0) birds[i].x = 0;
-                    if (birds[i].x > w) birds[i].x = w;
-                    if (birds[i].y < 0) birds[i].y = 0;
-                    if (birds[i].y > h) birds[i].y = h;
-                    //Raylib.DrawCircle(birds[i].x, birds[i].y, radius, c);
+                    birds[i].vy = (birds[i].vy +
+                                (ypos_avg - birds[i].y) * centeringfactor +
+                                (yvel_avg - birds[i].vy) * matchingfactor);
                 }
+                birds[i].vx = birds[i].vx + (close_dx * avoidfactor);
+                birds[i].vy = birds[i].vy + (close_dy * avoidfactor);
+
+                // see screen edges (boundaries)
+                /*outside top margin*/
+                if (birds[i].y < h / marginy)
+                {
+                    birds[i].vy = birds[i].vy + turnfactor;
+                }
+                /*outside bottom margin*/
+                if (birds[i].y > h - h / marginy)
+                {
+                    birds[i].vy = birds[i].vy - turnfactor;
+                }
+                /*outside right margin*/
+                if (birds[i].x > w - w / marginx)
+                {
+                    birds[i].vx = birds[i].vx - turnfactor;
+                }
+                /*outside left margin*/
+                if (birds[i].x < w / marginx)
+                {
+                    birds[i].vx = birds[i].vx + turnfactor;
+                }
+                float speed = MathF.Sqrt(birds[i].vx * birds[i].vx + birds[i].vy * birds[i].vy);
+                if (speed < minspeed)
+                {
+                    birds[i].vx = (birds[i].vx / speed) * minspeed;
+                    birds[i].vy = (birds[i].vy / speed) * minspeed;
+                }
+                if (speed > maxspeed)
+                {
+                    birds[i].vx = (birds[i].vx / speed) * maxspeed;
+                    birds[i].vy = (birds[i].vy / speed) * maxspeed;
+                }
+
+                birds[i].x += (int)(birds[i].vx * 2);
+                birds[i].y += (int)(birds[i].vy * 2);
+                if (birds[i].x < 0) birds[i].x = 0;
+                if (birds[i].x > w) birds[i].x = w;
+                if (birds[i].y < 0) birds[i].y = 0;
+                if (birds[i].y > h) birds[i].y = h;
+                //Raylib.DrawCircle(birds[i].x, birds[i].y, radius, c);
+            });
+        }
+
+        public static void Update(int StartIndex, int Count)
+        {
+            for (int i = StartIndex; i < StartIndex + Count; i++)
+            {
+                float close_dx = 0.0f;
+                float close_dy = 0.0f;
+                float xpos_avg = 0.0f;
+                float ypos_avg = 0.0f;
+                float xvel_avg = 0.0f;
+                float yvel_avg = 0.0f;
+                float neighboring_boids = 0.0f;
+                for (int j = 0; j < N; j++)
+                {
+                    if (i != j)
+                    {
+                        Vector2 difference = new(birds[i].x - birds[j].x, birds[i].y - birds[j].y);
+                        if (MathF.Abs(difference.X) < visualRange && MathF.Abs(difference.Y) < visualRange)
+                        {
+                            float SquaredDistance = difference.LengthSquared();
+                            if (SquaredDistance < MathF.Pow(protectedRange, 2))
+                            {
+                                close_dx += difference.X;
+                                close_dy += difference.Y;
+                            }
+                            else if (SquaredDistance < MathF.Pow(visualRange, 2))
+                            {
+                                xpos_avg += birds[j].x;
+                                ypos_avg += birds[j].y;
+                                xvel_avg += birds[j].vx;
+                                yvel_avg += birds[j].vy;
+
+                                neighboring_boids++;
+                            }
+                        }
+                    }
+                }
+                if (neighboring_boids > 0)
+                {
+                    xpos_avg = xpos_avg / neighboring_boids;
+                    ypos_avg = ypos_avg / neighboring_boids;
+                    xvel_avg = xvel_avg / neighboring_boids;
+                    yvel_avg = yvel_avg / neighboring_boids;
+
+                    birds[i].vx = (birds[i].vx +
+                                (xpos_avg - birds[i].x) * centeringfactor +
+                                (xvel_avg - birds[i].vx) * matchingfactor);
+
+                    birds[i].vy = (birds[i].vy +
+                                (ypos_avg - birds[i].y) * centeringfactor +
+                                (yvel_avg - birds[i].vy) * matchingfactor);
+                }
+                birds[i].vx = birds[i].vx + (close_dx * avoidfactor);
+                birds[i].vy = birds[i].vy + (close_dy * avoidfactor);
+
+                // see screen edges (boundaries)
+                /*outside top margin*/
+                if (birds[i].y < h / marginy)
+                {
+                    birds[i].vy = birds[i].vy + turnfactor;
+                }
+                /*outside bottom margin*/
+                if (birds[i].y > h - h / marginy)
+                {
+                    birds[i].vy = birds[i].vy - turnfactor;
+                }
+                /*outside right margin*/
+                if (birds[i].x > w - w / marginx)
+                {
+                    birds[i].vx = birds[i].vx - turnfactor;
+                }
+                /*outside left margin*/
+                if (birds[i].x < w / marginx)
+                {
+                    birds[i].vx = birds[i].vx + turnfactor;
+                }
+                float speed = MathF.Sqrt(birds[i].vx * birds[i].vx + birds[i].vy * birds[i].vy);
+                if (speed < minspeed)
+                {
+                    birds[i].vx = (birds[i].vx / speed) * minspeed;
+                    birds[i].vy = (birds[i].vy / speed) * minspeed;
+                }
+                if (speed > maxspeed)
+                {
+                    birds[i].vx = (birds[i].vx / speed) * maxspeed;
+                    birds[i].vy = (birds[i].vy / speed) * maxspeed;
+                }
+
+                birds[i].x += (int)(birds[i].vx * 2);
+                birds[i].y += (int)(birds[i].vy * 2);
+                if (birds[i].x < 0) birds[i].x = 0;
+                if (birds[i].x > w) birds[i].x = w;
+                if (birds[i].y < 0) birds[i].y = 0;
+                if (birds[i].y > h) birds[i].y = h;
+                //Raylib.DrawCircle(birds[i].x, birds[i].y, radius, c);
             }
         }
         static void DrawBird(Boid bird)
@@ -193,18 +286,23 @@ namespace Boids
             Raylib.DrawLineEx(top, leftend, Thickness, c);
             Raylib.DrawLineEx(top, rightend, Thickness, c);
         }
+        static int N = 5*1000;
         public static void RenderBoids()
         {
+#if true
             int part = 0;
-            int NumberOfThreads = 4;
-            Thread thread1 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-            Thread thread2 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-            Thread thread3 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-            Thread thread4 = new Thread(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
-            thread1.Start();
-            thread2.Start();
-            thread3.Start();
-            thread4.Start();
+            int NumberOfThreads = 12;
+            Thread[] threads = new Thread[NumberOfThreads];
+            for (int i = 0; i < threads.Length; i++)
+            {
+                threads[i] = new(() => Update(part++ * N / NumberOfThreads, N / NumberOfThreads));
+                threads[i].Start();
+            }
+            for (int i = 0; i < threads.Length; i++)
+                threads[i].Join();
+#else
+            UpdatePrallelFor(0, N);
+#endif
             for (int i = 0; i < N; i++)
             {
                 DrawBird(birds[i]);
@@ -349,7 +447,7 @@ namespace Boids
             int TextHeight = 21;
             State CurrentState = State.WelcomeScreen;
             Raylib.SetConfigFlags(ConfigFlags.AlwaysRunWindow);
-            Raylib.SetTargetFPS(60);
+            Raylib.SetTargetFPS(0);
             Raylib.InitWindow(w, h + TextHeight, "Boids");
             for (int i = 0; i < N; i++)
             {
